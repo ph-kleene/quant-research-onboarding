@@ -1,0 +1,371 @@
+{
+  "benchmark_attempts": [
+    {
+      "error_code": null,
+      "kind": "total_return",
+      "status": "success",
+      "ts_code": "H00300.CSI"
+    }
+  ],
+  "benchmark_candidates": [
+    {
+      "kind": "total_return",
+      "name": "300收益",
+      "ts_code": "H00300.CSI"
+    },
+    {
+      "kind": "price",
+      "name": "沪深300",
+      "ts_code": "000300.SH"
+    }
+  ],
+  "contains_credentials": false,
+  "contains_raw_responses": false,
+  "endpoint_count": 9,
+  "environment": {
+    "platform": "Linux",
+    "python": "3.12.14"
+  },
+  "generated_at": "2026-09-01T17:03:48.429969+00:00",
+  "rate_limit_per_minute": 180,
+  "results": [
+    {
+      "actual_codes": [
+        "000300.SH",
+        "H00300.CSI"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "nan",
+        "min": "20020701"
+      },
+      "endpoint": "index_basic",
+      "error_code": null,
+      "estimated_full_requests": "2-3 markets",
+      "fit_for_purpose": true,
+      "note": "searched actual index_basic catalogues for CSI and SSE markets",
+      "permission": true,
+      "purpose": "discover actual CSI 300 price/total-return candidate codes",
+      "requested_fields": [
+        "ts_code",
+        "name",
+        "fullname",
+        "market",
+        "publisher",
+        "category",
+        "base_date",
+        "list_date"
+      ],
+      "response_fields": [
+        "base_date",
+        "category",
+        "fullname",
+        "list_date",
+        "market",
+        "name",
+        "publisher",
+        "ts_code"
+      ],
+      "row_count": 8208,
+      "status": "success"
+    },
+    {
+      "actual_codes": [],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "trade_cal",
+      "error_code": null,
+      "estimated_full_requests": "1-2 exchanges",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "trading calendar and next valid execution date",
+      "requested_fields": [
+        "exchange",
+        "cal_date",
+        "is_open",
+        "pretrade_date"
+      ],
+      "response_fields": [
+        "cal_date",
+        "exchange",
+        "is_open",
+        "pretrade_date"
+      ],
+      "row_count": 3,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000001.SZ"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "daily",
+      "error_code": null,
+      "estimated_full_requests": "up to about 800 symbol ranges",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "raw OHLCV and executable opening observations",
+      "requested_fields": [
+        "ts_code",
+        "trade_date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "pre_close",
+        "vol",
+        "amount"
+      ],
+      "response_fields": [
+        "amount",
+        "close",
+        "high",
+        "low",
+        "open",
+        "pre_close",
+        "trade_date",
+        "ts_code",
+        "vol"
+      ],
+      "row_count": 3,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000001.SZ"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "adj_factor",
+      "error_code": null,
+      "estimated_full_requests": "up to about 800 symbol ranges",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "adjacent adjustment-factor return ratios",
+      "requested_fields": [
+        "ts_code",
+        "trade_date",
+        "adj_factor"
+      ],
+      "response_fields": [
+        "adj_factor",
+        "trade_date",
+        "ts_code"
+      ],
+      "row_count": 3,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000001.SZ"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "daily_basic",
+      "error_code": null,
+      "estimated_full_requests": "about 96-192 month-end slices",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "value factor, market value and close-status diagnostics",
+      "requested_fields": [
+        "ts_code",
+        "trade_date",
+        "close",
+        "pb",
+        "circ_mv",
+        "limit_status"
+      ],
+      "response_fields": [
+        "circ_mv",
+        "close",
+        "limit_status",
+        "pb",
+        "trade_date",
+        "ts_code"
+      ],
+      "row_count": 3,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000001.SZ"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "stk_limit",
+      "error_code": null,
+      "estimated_full_requests": "up to about 800 symbol ranges",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "official daily price limits for execution constraints",
+      "requested_fields": [
+        "trade_date",
+        "ts_code",
+        "pre_close",
+        "up_limit",
+        "down_limit"
+      ],
+      "response_fields": [
+        "down_limit",
+        "pre_close",
+        "trade_date",
+        "ts_code",
+        "up_limit"
+      ],
+      "row_count": 3,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000691.SZ",
+        "001331.SZ",
+        "002049.SZ",
+        "002718.SZ",
+        "300486.SZ",
+        "300955.SZ",
+        "301213.SZ",
+        "301687.SZ",
+        "600058.SH",
+        "600337.SH"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251231"
+      },
+      "endpoint": "suspend_d",
+      "error_code": null,
+      "estimated_full_requests": "16-800 depending on supported batching",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "official suspension evidence",
+      "requested_fields": [
+        "ts_code",
+        "trade_date",
+        "suspend_timing",
+        "suspend_type"
+      ],
+      "response_fields": [
+        "suspend_timing",
+        "suspend_type",
+        "trade_date",
+        "ts_code"
+      ],
+      "row_count": 15,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "000001.SZ",
+        "000002.SZ",
+        "000063.SZ",
+        "000100.SZ",
+        "000157.SZ",
+        "000166.SZ",
+        "000300.SH",
+        "000301.SZ",
+        "000333.SZ",
+        "000338.SZ"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251231"
+      },
+      "endpoint": "index_weight",
+      "error_code": null,
+      "estimated_full_requests": "about 96 monthly requests",
+      "fit_for_purpose": true,
+      "note": "",
+      "permission": true,
+      "purpose": "historical constituents and contemporaneous weights",
+      "requested_fields": [
+        "index_code",
+        "con_code",
+        "trade_date",
+        "weight"
+      ],
+      "response_fields": [
+        "con_code",
+        "index_code",
+        "trade_date",
+        "weight"
+      ],
+      "row_count": 300,
+      "status": "success"
+    },
+    {
+      "actual_codes": [
+        "H00300.CSI"
+      ],
+      "api_status": "ok",
+      "date_range": {
+        "max": "20251231",
+        "min": "20251229"
+      },
+      "endpoint": "index_daily",
+      "error_code": null,
+      "estimated_full_requests": "one minimal call per candidate; 1-2 full-range calls",
+      "fit_for_purpose": true,
+      "note": "selected verified total-return benchmark H00300.CSI",
+      "permission": true,
+      "purpose": "aligned CSI 300 benchmark after code discovery",
+      "requested_fields": [
+        "ts_code",
+        "trade_date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "pre_close",
+        "vol",
+        "amount"
+      ],
+      "response_fields": [
+        "amount",
+        "close",
+        "high",
+        "low",
+        "open",
+        "pre_close",
+        "trade_date",
+        "ts_code",
+        "vol"
+      ],
+      "row_count": 3,
+      "status": "success"
+    }
+  ],
+  "sample_target": {
+    "end": "2025-12-31",
+    "start": "2018-01-01"
+  },
+  "selected_benchmark": {
+    "includes_dividends": true,
+    "kind": "total_return",
+    "name": "300收益",
+    "ts_code": "H00300.CSI"
+  }
+}

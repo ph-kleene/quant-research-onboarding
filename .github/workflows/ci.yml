@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.12.7"
+          enable-cache: true
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
+      - name: Sync Python 3.12 environment
+        run: uv sync --all-groups --frozen
+      - name: Static checks and tests
+        run: bash scripts/project.sh test
+      - name: Build offline site and check links
+        run: bash scripts/project.sh build
+      - name: Security and license audit
+        run: bash scripts/project.sh audit

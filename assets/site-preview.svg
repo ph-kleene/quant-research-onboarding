@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">量化研究入门学习站预览</title>
+  <desc id="desc">深蓝到青色的首页，上方有导航，下方展示三条学习路径和六道研究评审门。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#102a43"/><stop offset=".65" stop-color="#1f5f78"/><stop offset="1" stop-color="#0f766e"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity=".18"/></filter>
+  </defs>
+  <rect width="1200" height="675" rx="28" fill="#f7fafc"/>
+  <rect width="1200" height="74" rx="28" fill="#102a43"/><rect y="52" width="1200" height="22" fill="#102a43"/>
+  <text x="54" y="47" font-size="25" fill="white" font-family="sans-serif" font-weight="700">量化研究入门</text>
+  <text x="760" y="45" font-size="16" fill="#dbeafe" font-family="sans-serif">30 分钟　3 小时　20 步地图　REG</text>
+  <rect x="38" y="104" width="1124" height="280" rx="24" fill="url(#bg)" filter="url(#shadow)"/>
+  <circle cx="1030" cy="155" r="96" fill="#f59e0b" opacity=".85"/>
+  <text x="86" y="160" font-size="18" letter-spacing="4" fill="#fbbf24" font-family="sans-serif" font-weight="700">EVIDENCE BEFORE EQUITY CURVE</text>
+  <text x="84" y="234" font-size="54" fill="white" font-family="sans-serif" font-weight="700">证据先于曲线</text>
+  <text x="86" y="286" font-size="25" fill="#dbeafe" font-family="sans-serif">用沪深300三因子案例，完成一次可审计的量化研究</text>
+  <rect x="86" y="318" width="165" height="42" rx="21" fill="#f59e0b"/><text x="120" y="346" font-size="17" fill="#102a43" font-family="sans-serif" font-weight="700">开始 30 分钟</text>
+  <g font-family="sans-serif" filter="url(#shadow)">
+    <rect x="38" y="414" width="346" height="195" rx="18" fill="white"/><text x="66" y="456" font-size="15" fill="#d97706" font-weight="700">QUICK LOOK</text><text x="66" y="495" font-size="28" fill="#102a43" font-weight="700">30 分钟速览</text><text x="66" y="532" font-size="17" fill="#486581">时钟 · 证据 · 失败 · REG</text>
+    <rect x="427" y="414" width="346" height="195" rx="18" fill="white"/><text x="455" y="456" font-size="15" fill="#d97706" font-weight="700">COMPLETE PATH</text><text x="455" y="495" font-size="28" fill="#102a43" font-weight="700">3 小时新人路径</text><text x="455" y="532" font-size="17" fill="#486581">20 步 · Notebook · 护照</text>
+    <rect x="816" y="414" width="346" height="195" rx="18" fill="white"/><text x="844" y="456" font-size="15" fill="#d97706" font-weight="700">RESEARCH GATES</text><text x="844" y="495" font-size="28" fill="#102a43" font-weight="700">D T S C R P</text><text x="844" y="532" font-size="17" fill="#486581">有效 · 补证 · 停止</text>
+  </g>
+</svg>

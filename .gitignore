@@ -1,0 +1,54 @@
+# Secrets: never commit local credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*token*
+*secret*
+secrets/
+
+# Repository-external and local market data
+data/raw/
+data/interim/
+data/processed/
+data/cache/
+cache/
+*.parquet
+*.feather
+*.pickle
+*.pkl
+
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Notebook / Quarto
+.ipynb_checkpoints/
+.quarto/
+**/*.quarto_ipynb
+_freeze/
+_site/
+
+# Logs, temporary and test products
+*.log
+logs/
+tmp/
+temp/
+.tmp/
+.cache/
+test-results/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+/.quarto/

@@ -1,0 +1,42 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.12.7"
+          enable-cache: true
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
+      - run: uv sync --all-groups --frozen
+      - run: bash scripts/project.sh test
+      - run: bash scripts/project.sh build
+      - run: bash scripts/project.sh audit
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

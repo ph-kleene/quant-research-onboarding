@@ -1,0 +1,101 @@
+{
+  "benchmark": {
+    "code": "H00300.CSI",
+    "includes_dividends": true,
+    "price_code": "000300.SH"
+  },
+  "contains_credentials": false,
+  "contains_raw_responses": false,
+  "data": {
+    "cross_section_count": 96,
+    "month_count": 120
+  },
+  "diagnostic_only": true,
+  "freeze_key": "2247f48d2875cd9bde2168062c38cfd70f4c1d903c409f00ae29dc67e1e13bda",
+  "generated_at": "2026-09-02T01:22:18.168444+00:00",
+  "governance": {
+    "confirmation_reveal_count": 1,
+    "contaminated": false,
+    "contamination_reason": "",
+    "reproduction_run_count": 6,
+    "research_decision_count": 1
+  },
+  "ic_summary": {
+    "ic_mean": 0.04323684897892415,
+    "ic_std": 0.2122589601189303,
+    "icir": 0.20369858099134291,
+    "positive_rate": 0.5684210526315789
+  },
+  "notes": [
+    "正式执行门未通过：全量涨跌停或开盘数据不完整；诊断组合未作为可成交回测结论。",
+    "历史 index_weight 的精确发布时间不可由返回记录证明；滞后一月敏感性尚未通过。"
+  ],
+  "performance": {
+    "annual_return": 0.4560628658268917,
+    "annual_volatility": 2.3399312508020427,
+    "cumulative_return": 19.20416977016914,
+    "max_drawdown": -0.5472652321891048,
+    "sharpe": 0.19490438690049977
+  },
+  "reg": {
+    "gates": [
+      {
+        "code": "D",
+        "evidence": "coverage=1.000",
+        "explanation": "权限、覆盖、历史股票池和复权数据是否完整",
+        "name": "数据",
+        "next_step": "补齐数据或停止研究",
+        "rule_type": "项目教学决策",
+        "status": "green"
+      },
+      {
+        "code": "T",
+        "evidence": "time_order_valid=True",
+        "explanation": "所有输入必须满足 usable_from <= signal_at < execution_at",
+        "name": "时序",
+        "next_step": "修正时钟和标签后重跑",
+        "rule_type": "方法必需条件",
+        "status": "green"
+      },
+      {
+        "code": "S",
+        "evidence": "ic_observations=95",
+        "explanation": "证据量与分期统计是否足够",
+        "name": "统计",
+        "next_step": "补充样本或停止推进",
+        "rule_type": "项目教学决策",
+        "status": "green"
+      },
+      {
+        "code": "C",
+        "evidence": "cost_model_complete=False; net_effect=0.0827",
+        "explanation": "成本和受限成交后的效应是否仍有推进价值",
+        "name": "成本",
+        "next_step": "补齐受限成交证据、复核成本假设或停止推进",
+        "rule_type": "团队未来可配置",
+        "status": "red"
+      },
+      {
+        "code": "R",
+        "evidence": "robust=False",
+        "explanation": "子期、参数和滞后敏感性是否一致",
+        "name": "稳健性",
+        "next_step": "补做稳健性或停止推进",
+        "rule_type": "项目教学决策",
+        "status": "red"
+      },
+      {
+        "code": "P",
+        "evidence": "reproducible=True",
+        "explanation": "冻结键和确定性复现必须一致",
+        "name": "复现",
+        "next_step": "补齐环境/数据/配置证据",
+        "rule_type": "方法必需条件",
+        "status": "green"
+      }
+    ],
+    "research_validity": "有效：D/T/P 无红灯",
+    "strategy_action": "停止：当前证据不支持策略推进"
+  },
+  "status": "credible_stop"
+}

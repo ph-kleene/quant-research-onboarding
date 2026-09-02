@@ -1,0 +1,18 @@
+---
+title: "引用与事实核验"
+---
+
+价值与多因子参考 [@fama1993common]；12-1 动量参考 [@jegadeesh1993returns]；低波动横截面参考 [@ang2006cross]；数据窥探与过拟合风险参考 [@lo2000foundations; @bailey2017probability]。
+
+Tushare 字段与接口语义以官方文档为起点 [@tushare_docs]，实际权限、返回字段和指数完整代码以当前账户最小探测为准。环境与构建遵循 uv、Quarto 官方文档 [@uv_docs; @quarto_docs]。
+
+## 核验规则
+
+1. 优先论文、交易所、指数公司和官方文档。
+2. 区分通用方法、项目教学决策、未来可配置阈值。
+3. 官方描述与真实返回不一致时，保留探测证据并更新设计与护照。
+
+## 参考文献 {.unnumbered}
+
+::: {#refs}
+:::

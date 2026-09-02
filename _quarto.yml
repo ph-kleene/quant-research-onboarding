@@ -1,0 +1,83 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - content/*.qmd
+    - notebooks/research-case.ipynb
+
+website:
+  title: "量化研究入门｜证据先于曲线"
+  description: "用沪深300三因子案例学习可复现、可评审的量化研究"
+  site-url: "https://ph-kleene.github.io/quant-research-onboarding/"
+  repo-url: "https://github.com/ph-kleene/quant-research-onboarding"
+  repo-actions: [source, issue]
+  navbar:
+    background: "#102a43"
+    foreground: "#f8fafc"
+    left:
+      - href: content/index.qmd
+        text: 首页
+      - href: content/quickstart.qmd
+        text: 30 分钟
+      - href: content/three-hours.qmd
+        text: 3 小时
+      - href: content/deep-dive.qmd
+        text: 深入实践
+      - href: content/research-map.qmd
+        text: 20 步地图
+      - href: content/case-study.qmd
+        text: 贯穿案例
+      - href: content/reg.qmd
+        text: REG
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - section: "开始"
+        contents:
+          - content/index.qmd
+          - content/quickstart.qmd
+          - content/three-hours.qmd
+          - content/deep-dive.qmd
+      - section: "研究闭环"
+        contents:
+          - content/research-map.qmd
+          - content/case-study.qmd
+          - content/failure-lab.qmd
+          - content/reg.qmd
+          - content/passport.qmd
+      - section: "工具与边界"
+        contents:
+          - content/templates.qmd
+          - content/glossary.qmd
+          - content/references.qmd
+          - content/self-test.qmd
+          - content/english-summary.qmd
+  page-footer:
+    left: "教学用途，不构成投资建议。"
+    right: "数据、代码、配置与证据共同决定结论。"
+
+lang: zh
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    css: assets/styles.css
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+    link-external-newwindow: true
+    anchor-sections: true
+    smooth-scroll: true
+    fig-responsive: true
+
+execute:
+  freeze: auto
+  echo: true
+  warning: false
+  error: false
+
+bibliography: references.bib

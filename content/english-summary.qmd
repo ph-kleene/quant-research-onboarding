@@ -1,0 +1,15 @@
+---
+title: "English one-page summary"
+---
+
+## Quant Research Onboarding: Evidence Before Equity Curves
+
+This public, offline-capable product teaches interns to complete and review a reproducible multi-factor study. A CSI 300 value, 12-1 momentum and low-volatility case links twenty steps from a falsifiable question to a Research Evaluation Gate decision.
+
+The formal route uses real Tushare data for 2018–2025 after nine minimal capability probes. Public deterministic fixtures are only for tests, failure demonstrations and no-token preview; they are never market evidence.
+
+Signals form at 18:00 after conservative availability windows and execute at the next valid open. The daily model handles suspensions, price limits, delayed orders, realized turnover and costs, but not queue priority, depth or partial fills.
+
+Red Data, Timing or Reproducibility gates invalidate research. Statistical, Cost or Robustness weakness can yield a credible “gather evidence” or “stop” decision. Profitability is not an acceptance criterion.
+
+[Chinese quick path](quickstart.qmd) · [20-step map](research-map.qmd) · [Self-test](self-test.qmd)

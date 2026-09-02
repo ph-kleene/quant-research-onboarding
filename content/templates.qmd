@@ -1,0 +1,16 @@
+---
+title: "研究模板库"
+---
+
+| 模板 | 何时使用 |
+|---|---|
+| [问题卡](../templates/question-card.md) | 开始前定义否证条件 |
+| [假设卡](../templates/hypothesis-card.md) | 冻结经济机制与方向 |
+| [数据字典](../templates/data-dictionary.md) | 探测后登记时点与回退 |
+| [实验登记](../templates/experiment-registration.md) | 确认揭示前冻结 |
+| [结果卡](../templates/result-card.md) | 汇总证据、限制、下一步 |
+| [REG](../templates/reg-review.md) | 双层决策 |
+| [研究护照](../templates/research-passport.md) | 复现与交付 |
+| [失败诊断](../templates/failure-diagnosis.md) | 门禁失败时定位 |
+
+最小顺序：问题 → 假设 → 数据 → 登记 → 结果 → REG → 护照。查看确认期后的设计修改必须新建探索实验。
