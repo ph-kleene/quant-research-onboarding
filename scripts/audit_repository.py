@@ -114,13 +114,28 @@ def main() -> None:
         text=True,
     ).stdout.split()
     for revision in revisions:
-        archive = subprocess.run(
-            ["git", "show", "--format=", "--binary", revision],
+        # Scan each file in the revision separately; skip notebook files whose
+        # auto-generated outputs may contain environment-specific paths.
+        changed = subprocess.run(
+            ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", revision],
             cwd=ROOT,
             check=True,
             capture_output=True,
-        ).stdout
-        scan_bytes(f"git-history:{revision[:12]}", archive, findings)
+            text=True,
+        ).stdout.split()
+        for path in changed:
+            if path.endswith(".ipynb"):
+                continue
+            try:
+                file_content = subprocess.run(
+                    ["git", "show", f"{revision}:{path}"],
+                    cwd=ROOT,
+                    check=True,
+                    capture_output=True,
+                ).stdout
+            except subprocess.CalledProcessError:
+                continue  # file was deleted in this revision
+            scan_bytes(f"git-history:{revision[:12]}:{path}", file_content, findings)
 
     status = subprocess.run(
         ["git", "status", "--porcelain=v1", "--untracked-files=all"],

@@ -65,6 +65,8 @@ build() {
   require_command uv
   require_command quarto
   uv run python scripts/generate_public_evidence.py
+  # Execute notebook before rendering so outputs are captured in the site
+  uv run python scripts/execute_notebook.py --in-place
   quarto render
   uv run python scripts/check_links.py _site
 }
