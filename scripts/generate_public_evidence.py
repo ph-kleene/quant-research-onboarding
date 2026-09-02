@@ -39,8 +39,12 @@ def main() -> None:
     (evidence / "public-reg-summary.md").write_text(reg_md, encoding="utf-8")
     plt.style.use("seaborn-v0_8-whitegrid")
     plt.rcParams["svg.fonttype"] = "none"  # Use <text> elements, not paths
-    plt.rcParams["font.sans-serif"] = ["WenQuanYi Micro Hei", "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
+    # Try Chinese font, fall back to DejaVu Sans on CI
+    try:
+        plt.rcParams["font.sans-serif"] = ["WenQuanYi Micro Hei", "DejaVu Sans"]
+    except Exception:
+        plt.rcParams["font.sans-serif"] = ["DejaVu Sans"]
     figure, axis = plt.subplots(figsize=(11, 6))
     colors = {
         "correct": "#0f766e",
