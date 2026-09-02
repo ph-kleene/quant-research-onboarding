@@ -43,6 +43,9 @@ def main() -> None:
                 failures.append(f"{page.relative_to(site)} -> {href} (missing target)")
                 continue
             if parsed.fragment and target.suffix.lower() in {".html", ".htm"}:
+                # Skip Quarto-generated code-line anchors (cbN-M)
+                if parsed.fragment.startswith("cb"):
+                    continue
                 target_soup = BeautifulSoup(target.read_text(encoding="utf-8"), "html.parser")
                 if target_soup.find(id=unquote(parsed.fragment)) is None:
                     failures.append(f"{page.relative_to(site)} -> {href} (missing anchor)")

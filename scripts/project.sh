@@ -65,9 +65,18 @@ build() {
   require_command uv
   require_command quarto
   uv run python scripts/generate_public_evidence.py
-  # Execute notebook before rendering so outputs are captured in the site
+  # Execute notebook in-place so Quarto can capture outputs in the static site,
+  # then restore the source notebook to a clean state (no outputs in git).
   uv run python scripts/execute_notebook.py --in-place
   quarto render
+  uv run python -c "
+import json
+nb = json.load(open('notebooks/research-case.ipynb'))
+for c in nb['cells']:
+    if c['cell_type'] == 'code': c['execution_count'] = None; c['outputs'] = []
+json.dump(nb, open('notebooks/research-case.ipynb', 'w'), ensure_ascii=False, indent=1)
+print('Notebook restored to clean state')
+"
   uv run python scripts/check_links.py _site
 }
 
