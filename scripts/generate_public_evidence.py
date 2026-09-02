@@ -38,6 +38,7 @@ def main() -> None:
     reg_md = f"""::: {{.evidence}}\n**教学夹具 REG**：{reg["research_validity"]}；{reg["strategy_action"]}。此判断只验证 REG 行为。\n:::\n\n| 门 | 状态 | 证据 | 下一步 |\n|---|---|---|---|\n{rows}\n"""
     (evidence / "public-reg-summary.md").write_text(reg_md, encoding="utf-8")
     plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams["svg.fonttype"] = "none"  # Use <text> elements, not paths
     plt.rcParams["font.sans-serif"] = ["WenQuanYi Micro Hei", "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
     figure, axis = plt.subplots(figsize=(11, 6))
