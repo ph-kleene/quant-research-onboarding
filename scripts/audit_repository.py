@@ -104,6 +104,9 @@ def main() -> None:
             findings.append(f"{relative}: forbidden secret filename")
         if any(relative == root or relative.startswith(root + "/") for root in RESTRICTED_ROOTS):
             findings.append(f"{relative}: restricted raw/cache location")
+        # Notebook outputs are auto-generated and may contain environment paths
+        if path.suffix == ".ipynb":
+            continue
         scan_bytes(relative, path.read_bytes(), findings)
 
     revisions = subprocess.run(
