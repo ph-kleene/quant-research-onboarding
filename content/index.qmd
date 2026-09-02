@@ -7,7 +7,7 @@ toc: false
 ::: {.hero-sm}
 10 分钟建立直觉，45 分钟跟做真实案例，2 小时动手实践。
 
-[开始学习](factor-intro.qmd){.btn .btn-warning .btn-lg} [先看案例](case-study.qmd){.btn .btn-outline-light .btn-lg}
+[开始学习](factor-intro.qmd){.btn .btn-warning .btn-lg} [先看案例](case-study.qmd){.btn .btn-outline-secondary .btn-lg}
 :::
 
 ## 你会学到什么
