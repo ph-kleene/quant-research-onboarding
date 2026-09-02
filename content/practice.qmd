@@ -1,0 +1,252 @@
+---
+title: "动手实践"
+description: "运行基准实验，修改一个参数，比较前后结果，完成研究记录。"
+---
+
+## 你的任务
+
+运行基准实验 → 只修改一个参数 → 比较前后结果 → 填写结果卡 → 给出判断。
+
+**预计时间**：2 小时 · **需要**：Python 3.12 环境 · **不需要 Token**
+
+---
+
+## 学习进度：第 5/5 步
+
+[← 上一步：可信度六问](credibility.qmd)
+
+---
+
+## 1. 环境自检
+
+**目标**：确认环境已安装，可以运行测试。
+
+**操作**（在仓库根目录运行）：
+
+```bash
+# 进入仓库目录
+cd 量化研究项目目录
+
+# 安装环境（仅第一次）
+bash scripts/project.sh setup
+```
+
+**预期输出**：
+```
+环境就绪：uv=X.X.X，Python=3.12.X，Quarto=X.X.X
+```
+
+**成功标志**：看到"环境就绪"且 Python 版本为 3.12。
+
+**常见错误**：
+
+| 错误 | 解决 |
+|---|---|
+| `uv: command not found` | 先安装 uv：`curl -LsSf https://astral.sh/uv/install.sh | sh` |
+| `quarto: command not found` | 从 <https://quarto.org/docs/download/> 安装 Quarto |
+| Python 版本不是 3.12 | 运行 `uv python install 3.12` |
+
+---
+
+## 2. 运行基准实验
+
+**目标**：运行测试和 Notebook，确认一切正常。
+
+```bash
+# 在仓库根目录运行
+bash scripts/project.sh test
+```
+
+**这个命令会依次执行**：
+1. ruff 静态检查
+2. pytest 单元测试
+3. Notebook 端到端执行（在临时目录，不修改源文件）
+
+**预期输出**（末尾）：
+```
+Notebook E2E: PASS (executed copy kept outside repository and discarded)
+```
+
+**成功标志**：所有测试通过，Notebook E2E 显示 PASS。
+
+::: {.callout-tip collapse="true" appearance="simple"}
+**想交互式查看 Notebook？**
+
+```bash
+# 创建个人实验副本（不会影响基准 Notebook）
+mkdir -p my-experiments
+cp notebooks/research-case.ipynb my-experiments/experiment-1.ipynb
+
+# 用 Jupyter 打开
+uv run jupyter notebook my-experiments/experiment-1.ipynb
+```
+
+如果 `jupyter` 命令不可用：`uv add ipykernel jupyter --group dev`
+:::
+
+---
+
+## 3. 完成一次受控修改
+
+**目标**：修改一个参数，观察前后变化。
+
+### 3.1 打开你的实验副本
+
+```bash
+uv run jupyter notebook my-experiments/experiment-1.ipynb
+```
+
+### 3.2 找到要修改的参数
+
+在 Notebook 中找到 `evaluate_teaching_case()` 调用附近的单元格。教学中使用的关键参数：
+
+- `top_quantile_weights(scores, 0.2)` — 选股比例，默认 20%
+- `cost_bps=20` — 单边交易成本，默认 20 bps
+
+### 3.3 推荐修改（任选一个）
+
+**修改 A**：选股比例从 20% 改为 10%
+
+```python
+# 原来
+weights = top_quantile_weights(scores, 0.2)
+# 改为
+weights = top_quantile_weights(scores, 0.1)
+```
+
+**修改 B**：成本从 20 bps 改为 50 bps
+
+```python
+# 原来
+cost_bps=20
+# 改为
+cost_bps=50
+```
+
+### 3.4 运行修改后的 Notebook
+
+在 Jupyter 中：`Cell → Run All`
+
+### 3.5 记录前后对比
+
+| 指标 | 基准（修改前） | 实验（修改后） | 变化 |
+|---|---|---|---|
+| 选股比例或成本 | 原始值 | 新值 | — |
+| 月均 IC | | | |
+| 年化收益 | | | |
+| 年化波动 | | | |
+| 最大回撤 | | | |
+| 月均换手 | | | |
+| REG 结论 | | | |
+
+::: {.limitation}
+以上结果来自**教学夹具**（确定性模拟数据），用于验证方法和理解参数影响，不代表真实市场结论。
+:::
+
+---
+
+## 4. 提交研究记录
+
+### 4.1 填写结果卡
+
+使用 `templates/result-card.md` 模板，记录：
+
+- **新人必填**：修改了什么参数、前后结果对比、变化原因解释
+- **完整字段**（折叠）：环境版本、冻结键、REG 状态、治理字段
+
+<details>
+<summary>结果卡示例（点击展开）</summary>
+
+```markdown
+## 实验记录
+
+- **日期**：2026-09-02
+- **修改**：选股比例从 20% 改为 10%
+- **原因**：想观察更集中的组合是否提高收益
+
+### 前后对比
+
+| 指标 | 基准 (20%) | 实验 (10%) |
+|---|---|---|
+| 年化收益 | 7.23% | 8.15% |
+| 年化波动 | 3.92% | 4.67% |
+| 最大回撤 | -1.84% | -2.31% |
+| 月均换手 | 36.88% | 42.15% |
+
+### 解读
+
+选股更集中后，年化收益略有提高，但波动和回撤也增加了。
+换手率上升说明组合变化更大。REG 结论仍为全绿（教学夹具）。
+
+### 判断
+
+继续：在真实数据上验证这个修改是否同样有效。
+```
+</details>
+
+### 4.2 完成研究护照
+
+使用 `templates/research-passport.md`：
+
+- **新人必填**：环境版本、修改参数、REG 结论
+- **完整字段**（折叠）：冻结键、数据哈希、治理计数器
+
+### 4.3 最终检查清单
+
+- [ ] 基准实验运行成功
+- [ ] 只修改了一个参数
+- [ ] 保存了前后结果
+- [ ] 解释了变化原因
+- [ ] 完成结果卡
+- [ ] 给出了继续、补证或停止的判断
+
+---
+
+## 可选进阶
+
+### 使用真实数据
+
+如果你有 Tushare Token，将 Token 安全保存在仓库外：
+
+```bash
+# 创建仓库外配置文件（权限 600）
+mkdir -p ~/.config/shangchen-quant-research-onboarding
+echo 'TUSHARE_TOKEN=你的Token' > ~/.config/shangchen-quant-research-onboarding/tushare.env
+chmod 600 ~/.config/shangchen-quant-research-onboarding/tushare.env
+```
+
+然后运行：
+
+```bash
+bash scripts/project.sh probe   # 探测数据能力
+bash scripts/project.sh fetch   # 获取真实数据
+```
+
+::: {.limitation}
+真实数据缓存存储在 `~/.cache/shangchen-quant-research-onboarding/`，不会复制进仓库。公开产物只保留不可逆聚合。Token 不会进入日志、Notebook 输出或站点。
+:::
+
+### 提出自己的研究问题
+
+使用 `templates/question-card.md` 和 `templates/hypothesis-card.md` 模板，将你的投资想法改写成可检验的研究问题。
+
+---
+
+## 在线查看 Notebook
+
+本课程的研究 Notebook 已渲染为网页，可直接查看所有代码和输出：
+
+[打开 Notebook →](../notebooks/research-case.html){.btn .btn-outline-secondary}
+
+::: {.callout-tip collapse="true" appearance="simple"}
+**想交互式运行？** 安装环境后运行 `uv run jupyter notebook notebooks/research-case.ipynb`。
+:::
+
+---
+
+## 参考
+
+- [知识库](glossary.qmd) — 快速查阅术语和指标
+- [20 步研究地图](research-map.qmd) — 完整操作检查清单
+- [研究模板](../templates/question-card.md) — 提出新研究问题
+- [八步自测](self-test.qmd) — 检验学习成果

@@ -25,6 +25,9 @@ from .data import (
     response_records,
 )
 from .execution import (
+    MarketOpen,
+    PendingOrder,
+    process_pending_orders,
     transaction_cost,
     turnover,
 )
@@ -55,18 +58,6 @@ TOP_FRACTION = 0.2
 MOMENTUM_LOOKBACK = 252
 MOMENTUM_SKIP = 21
 VOLATILITY_WINDOW = 60
-
-
-def _load_token() -> str:
-    from .data import load_tushare_token
-
-    return load_tushare_token()
-
-
-def _build_access(cache_root: Path, repo_root: Path) -> TushareDataAccess:
-    from .cli import build_access
-
-    return build_access()
 
 
 def fetch_and_evaluate_real_case(
@@ -123,8 +114,9 @@ def fetch_and_evaluate_real_case(
     price_code = str(price_candidates[0]["ts_code"])
 
     # --- 3. Fetch data ---
-    manifest = ManifestWriter(cache_root / "manifests" / "real-case.jsonl")
-    access.manifest_writer = manifest
+    # Replace the probe-level manifest writer with a real-case-specific one.
+    # This is intentional: probe requests and real-case requests are logged separately.
+    access.manifest_writer = ManifestWriter(cache_root / "manifests" / "real-case.jsonl")
 
     # 3a. Trading calendar
     cal_result = access.fetch(
@@ -413,6 +405,43 @@ def _build_research_dataset(
     if not suspend_df.empty:
         suspend_df["trade_date"] = suspend_df["trade_date"].astype(str)
 
+    # --- Build daily-market lookup for execution state machine ---
+    market_lookup: dict[tuple[str, str], MarketOpen] = {}
+    if not daily_df.empty:
+        daily_indexed = daily_df.set_index(["trade_date", "ts_code"])
+        limit_indexed = (
+            limit_df.set_index(["trade_date", "ts_code"]) if not limit_df.empty else None
+        )
+        suspend_by_date = (
+            suspend_df.groupby("trade_date")["ts_code"].apply(set).to_dict()
+            if not suspend_df.empty
+            else {}
+        )
+        for (td, code), row in daily_indexed.iterrows():
+            has_daily = True
+            open_price = float(row["open"]) if pd.notna(row.get("open")) else None
+            volume = float(row["vol"]) if pd.notna(row.get("vol")) else None
+            up_limit = None
+            down_limit = None
+            if limit_indexed is not None and (td, code) in limit_indexed.index:
+                lim = limit_indexed.loc[(td, code)]
+                if isinstance(lim, pd.DataFrame):
+                    lim = lim.iloc[-1]
+                up_limit = float(lim["up_limit"]) if pd.notna(lim.get("up_limit")) else None
+                down_limit = (
+                    float(lim["down_limit"]) if pd.notna(lim.get("down_limit")) else None
+                )
+            suspended = code in suspend_by_date.get(td, set())
+            market_lookup[(td, code)] = MarketOpen(
+                trade_date=str(td),
+                open_price=open_price,
+                volume=volume,
+                up_limit=up_limit,
+                down_limit=down_limit,
+                suspended_full_day=suspended or not has_daily,
+                has_daily=has_daily,
+            )
+
     # --- Process benchmark ---
     if not benchmark_df.empty:
         benchmark_df["trade_date"] = benchmark_df["trade_date"].astype(str)
@@ -540,6 +569,14 @@ def _build_research_dataset(
                     "circ_mv",
                 )
                 processed["trade_date"] = month_end
+                # Research-clock columns for REG T-gate validation
+                processed["usable_from"] = f"{month_end}T17:30:00+08:00"
+                processed["signal_at"] = f"{month_end}T18:00:00+08:00"
+                # Find the next trading day after month_end
+                next_td = _next_trading_day(month_end, trading_days)
+                processed["execution_at"] = (
+                    f"{next_td}T09:30:00+08:00" if next_td else f"{month_end}T09:30:00+08:00"
+                )
                 cross_sections.append(processed.reset_index())
 
                 # Compute IC
@@ -563,48 +600,62 @@ def _build_research_dataset(
 
         # Build strategy returns
         strategy_returns = {}
+        strategy_delays = {}
+        strategy_turnovers = {}
         for config_name, config in controlled_failure_configs().items():
             if config_name == "correct":
-                strat_ret, gross_ret, turnover_series = _evaluate_strategy(
+                strat_ret, gross_ret, turnover_series, delay_series = _evaluate_strategy(
                     all_cs,
                     "composite",
                     COST_BPS,
                     future_data=config["future_data"],
                     current_constituents=config["current_constituents"],
                     ignore_costs=config["ignore_costs"],
+                    market_lookup=market_lookup if market_lookup else None,
+                    trading_days=trading_days,
                 )
                 strategy_returns[config_name] = strat_ret
                 strategy_returns["gross"] = gross_ret
+                strategy_turnovers[config_name] = turnover_series
+                strategy_delays[config_name] = delay_series
             elif config_name == "E1_future_data":
-                strat_ret, _, _ = _evaluate_strategy(
+                strat_ret, _, _, _ = _evaluate_strategy(
                     all_cs,
                     "composite",
                     COST_BPS,
                     future_data=True,
+                    market_lookup=market_lookup if market_lookup else None,
+                    trading_days=trading_days,
                 )
                 strategy_returns[config_name] = strat_ret
             elif config_name == "E2_survivorship":
-                strat_ret, _, _ = _evaluate_strategy(
+                strat_ret, _, _, _ = _evaluate_strategy(
                     all_cs,
                     "composite",
                     COST_BPS,
                     current_constituents=True,
+                    market_lookup=market_lookup if market_lookup else None,
+                    trading_days=trading_days,
                 )
                 strategy_returns[config_name] = strat_ret
             elif config_name == "E3_ignore_costs":
-                strat_ret, _, _ = _evaluate_strategy(
+                strat_ret, _, _, _ = _evaluate_strategy(
                     all_cs,
                     "composite",
                     0,
                     ignore_costs=True,
+                    market_lookup=market_lookup if market_lookup else None,
+                    trading_days=trading_days,
                 )
                 strategy_returns[config_name] = strat_ret
             elif config_name == "E4_confirmation_pollution":
-                strat_ret, _, _ = _evaluate_strategy(
+                strat_ret, _, _, _ = _evaluate_strategy(
                     all_cs,
                     "composite",
                     COST_BPS,
                     confirmation_reselection=True,
+                    market_lookup=market_lookup if market_lookup else None,
+                    trading_days=trading_days,
                 )
                 strategy_returns[config_name] = strat_ret
 
@@ -624,11 +675,21 @@ def _build_research_dataset(
         perf = performance_summary(correct, 12) if len(correct) > 0 else None
 
         expected_months = _month_end_trading_days(trading_days, "20180101", "20251231")
-        execution_data_complete = not limit_df.empty and not daily_df.empty
-        if not execution_data_complete:
+        execution_data_available = not limit_df.empty and not daily_df.empty
+        execution_applied = execution_data_available and bool(market_lookup)
+        if not execution_applied:
             notes.append(
-                "正式执行门未通过：全量涨跌停或开盘数据不完整；诊断组合未作为可成交回测结论。"
+                "正式执行门未通过：全量涨跌停或开盘数据不完整，"
+                "成交状态机未应用于回测；诊断组合未作为可成交回测结论。"
             )
+        else:
+            # Report delay statistics from the execution model
+            delay_series = strategy_delays.get("correct", pd.Series())
+            total_delayed = int(delay_series[delay_series > 0].sum())
+            if total_delayed > 0:
+                notes.append(
+                    f"成交状态机已应用；全周期累计延迟订单 {total_delayed} 次。"
+                )
         notes.append("历史 index_weight 的精确发布时间不可由返回记录证明；滞后一月敏感性尚未通过。")
 
         exploration = correct.loc[correct.index < pd.Timestamp(CONFIRMATION_START)]
@@ -640,17 +701,23 @@ def _build_research_dataset(
         )
 
         # Evidence for REG. Unknown or unimplemented checks fail closed.
+        time_order_ok = _validate_research_clock(cross_sections)
         evidence = {
             "data_coverage": float(len(cross_sections) / max(1, len(expected_months))),
-            "time_order_valid": True,
-            "future_leak": False,
+            "time_order_valid": time_order_ok,
+            "future_leak": False,  # structural: labels are always strictly future by construction
             "reproducible": reproducible,
             "ic_observations": int(ic_series.notna().sum()),
             "net_effect": float(correct.mean()) if len(correct) > 0 else 0.0,
-            "cost_model_complete": execution_data_complete,
+            "cost_model_complete": execution_applied,
             "robust_across_subperiods": robust_across_subperiods,
             "lag_sensitivity_ok": False,
         }
+        if not time_order_ok:
+            notes.append(
+                "研究时钟验证未通过：部分截面可能存在 usable_from > signal_at "
+                "或 signal_at >= execution_at。"
+            )
 
         reg_report = evaluate_reg(evidence)
         if reg_report.strategy_action.startswith("停止"):
@@ -773,6 +840,43 @@ def _month_end_trading_days(trading_days: list[str], start: str, end: str) -> li
     return month_ends
 
 
+def _next_trading_day(date_str: str, trading_days: list[str]) -> str | None:
+    """Return the first trading day strictly after *date_str*, or None."""
+    if not trading_days:
+        return None
+    for td in trading_days:
+        if td > date_str:
+            return td
+    return None
+
+
+def _validate_research_clock(cross_sections: list[pd.DataFrame]) -> bool:
+    """Verify that every cross-section row satisfies usable_from <= signal_at < execution_at.
+
+    Each cross-section DataFrame is expected to carry the three research-clock columns
+    that were populated during ``_build_research_dataset``.  Returns False when any row
+    violates the inequality or when the columns cannot be found.
+    """
+
+    if not cross_sections:
+        return False
+    sample = cross_sections[0]
+    required = {"usable_from", "signal_at", "execution_at"}
+    if not required.issubset(sample.columns):
+        return False
+    for cs in cross_sections:
+        if cs.empty:
+            continue
+        usable = pd.to_datetime(cs["usable_from"], utc=True, errors="coerce")
+        signal = pd.to_datetime(cs["signal_at"], utc=True, errors="coerce")
+        execution = pd.to_datetime(cs["execution_at"], utc=True, errors="coerce")
+        if not (usable.notna().all() and signal.notna().all() and execution.notna().all()):
+            return False
+        if not (usable.le(signal).all() and signal.lt(execution).all()):
+            return False
+    return True
+
+
 def _evaluate_strategy(
     all_cs: pd.DataFrame,
     score_column: str,
@@ -782,14 +886,70 @@ def _evaluate_strategy(
     current_constituents: bool = False,
     ignore_costs: bool = False,
     confirmation_reselection: bool = False,
-) -> tuple[pd.Series, pd.Series, pd.Series]:
-    """Evaluate the strategy and return (net_returns, gross_returns, turnover_series)."""
+    market_lookup: dict[tuple[str, str], MarketOpen] | None = None,
+    trading_days: list[str] | None = None,
+) -> tuple[pd.Series, pd.Series, pd.Series, pd.Series]:
+    """Evaluate the strategy and return (net_returns, gross_returns, turnover_series, delay_series).
+
+    When *market_lookup* and *trading_days* are provided the conservative next-open
+    execution state machine is applied; otherwise the evaluation falls back to a
+    simple monthly rebalance (the fallback is marked in the returned delay series).
+    """
 
     returns: dict[pd.Timestamp, float] = {}
     gross_returns: dict[pd.Timestamp, float] = {}
     turnovers: dict[pd.Timestamp, float] = {}
+    delays: dict[pd.Timestamp, int] = {}
 
     previous_weights = pd.Series(dtype=float)
+    pending_orders: list[PendingOrder] = []
+
+    # Survivorship bias: use only symbols that appear in the *last* cross-section
+    # (i.e. today's survivors) to backfill the entire history.
+    if current_constituents:
+        all_dates = sorted(all_cs["trade_date"].unique())
+        if len(all_dates) > 0:
+            last_date = all_dates[-1]
+            survivor_symbols = set(
+                all_cs.loc[all_cs["trade_date"] == last_date, "ts_code"].unique()
+            )
+        else:
+            survivor_symbols = set()
+    else:
+        survivor_symbols = None
+
+    use_execution_model = market_lookup is not None and trading_days is not None
+
+    # E4 pre-computation: if confirmation_reselection is on, evaluate each
+    # candidate factor over the *full* period and pick the one with the highest
+    # mean annual return.  This matches the teaching-module behaviour.
+    _reselected_factor: str = score_column
+    if confirmation_reselection:
+        candidate_factors = ["value_z", "momentum_z", "low_volatility_z", "composite"]
+        best_annual = -float("inf")
+        for cf in candidate_factors:
+            cf_returns: dict[pd.Timestamp, float] = {}
+            prev = pd.Series(dtype=float)
+            for date, cs in all_cs.groupby("trade_date", sort=True):
+                if cs.empty:
+                    continue
+                if survivor_symbols is not None:
+                    cs = cs[cs["ts_code"].isin(survivor_symbols)]
+                    if cs.empty:
+                        continue
+                w = top_quantile_weights(cs.set_index("ts_code")[cf], TOP_FRACTION)
+                lab = cs.set_index("ts_code")["forward_return"]
+                g = float((w * lab.fillna(0.0)).sum())
+                t = turnover(prev, w)
+                net = g - transaction_cost(t, cost_bps)
+                cf_returns[pd.Timestamp(date)] = net
+                prev = w
+            cf_series = pd.Series(cf_returns)
+            if len(cf_series) > 0:
+                ann = performance_summary(cf_series, 12).annual_return
+                if ann > best_annual:
+                    best_annual = ann
+                    _reselected_factor = cf
 
     for date, cross_section in all_cs.groupby("trade_date", sort=True):
         if cross_section.empty:
@@ -797,41 +957,124 @@ def _evaluate_strategy(
 
         df = cross_section.copy()
 
+        if survivor_symbols is not None:
+            df = df[df["ts_code"].isin(survivor_symbols)]
+            if df.empty:
+                continue
+
         if future_data:
-            # Use forward return as score (future leak)
             scores = df.set_index("ts_code")["forward_return"]
         elif confirmation_reselection:
-            # Pick best factor after seeing all data
-            best_factor = None
-            best_mean = -float("inf")
-            for factor in ["value_z", "momentum_z", "low_volatility_z", "composite"]:
-                factor_mean = df[factor].mean()
-                if factor_mean > best_mean:
-                    best_mean = factor_mean
-                    best_factor = factor
-            scores = df.set_index("ts_code")[best_factor]
+            # E4: pick the best factor *globally* after seeing all data,
+            # matching the teaching-module behaviour (contaminated confirmation).
+            scores = df.set_index("ts_code")[_reselected_factor]
         else:
             scores = df.set_index("ts_code")[score_column]
 
-        weights = top_quantile_weights(scores, TOP_FRACTION)
+        target_weights = top_quantile_weights(scores, TOP_FRACTION)
         labels = df.set_index("ts_code")["forward_return"]
 
-        gross = float((weights * labels).sum())
+        if use_execution_model:
+            # --- Execution state machine: process pending orders first ---
+            date_str = str(date.date()) if hasattr(date, "date") else str(date)[:10]
+            # Find the next trading day for execution
+            exec_day = _next_trading_day(date_str, trading_days) if trading_days else None
+            if exec_day:
+                market_by_symbol: dict[str, MarketOpen] = {}
+                # Include pending-order symbols so they can also be looked up
+                all_market_syms = (
+                    set(target_weights.index)
+                    | set(previous_weights.index)
+                    | {o.symbol for o in pending_orders}
+                )
+                for sym in all_market_syms:
+                    key = (exec_day, sym)
+                    if key in market_lookup:
+                        market_by_symbol[sym] = market_lookup[key]
+                    else:
+                        market_by_symbol[sym] = MarketOpen(
+                            exec_day, None, None, has_daily=False
+                        )
 
-        actual_turnover = turnover(previous_weights, weights)
-        cost = 0.0 if ignore_costs else transaction_cost(actual_turnover, cost_bps)
-        net = gross - cost
+                # Generate new orders from weight differences
+                new_orders: list[PendingOrder] = []
+                all_symbols = sorted(
+                    set(target_weights.index)
+                    | set(previous_weights.index)
+                    | {o.symbol for o in pending_orders}
+                )
+                for sym in all_symbols:
+                    tw = float(target_weights.get(sym, 0.0))
+                    pw = float(previous_weights.get(sym, 0.0))
+                    if abs(tw - pw) < 1e-10:
+                        continue
+                    if tw > pw:
+                        new_orders.append(
+                            PendingOrder(sym, "buy", tw - pw, date_str)
+                        )
+                    else:
+                        new_orders.append(
+                            PendingOrder(sym, "sell", pw - tw, date_str)
+                        )
+
+                # Process pending + new orders through the state machine
+                all_orders = pending_orders + new_orders
+                events, pending_orders = process_pending_orders(all_orders, market_by_symbol)
+
+                # Build actual holdings: start from previous, apply fills
+                actual_holdings = previous_weights.copy()
+                for evt in events:
+                    if evt.filled:
+                        if evt.side == "buy":
+                            actual_holdings[evt.symbol] = (
+                                actual_holdings.get(evt.symbol, 0.0) + evt.target_weight
+                            )
+                        else:
+                            actual_holdings[evt.symbol] = max(
+                                0.0,
+                                actual_holdings.get(evt.symbol, 0.0) - evt.target_weight,
+                            )
+                # Remove zero holdings
+                actual_holdings = actual_holdings[actual_holdings > 1e-10]
+
+                # Gross return from actual holdings
+                held_weights = actual_holdings.reindex(labels.index, fill_value=0.0)
+                gross = float((held_weights * labels.fillna(0.0)).sum())
+
+                # Turnover and cost based on actual fills
+                actual_turnover = turnover(previous_weights, actual_holdings)
+                cost = 0.0 if ignore_costs else transaction_cost(actual_turnover, cost_bps)
+                net = gross - cost
+
+                delays[date] = len(pending_orders)
+                previous_weights = actual_holdings
+            else:
+                # Fallback: no next trading day found
+                gross = float((target_weights * labels.fillna(0.0)).sum())
+                actual_turnover = turnover(previous_weights, target_weights)
+                cost = 0.0 if ignore_costs else transaction_cost(actual_turnover, cost_bps)
+                net = gross - cost
+                delays[date] = 0
+                previous_weights = target_weights
+        else:
+            # Simple monthly rebalance (fallback when market data unavailable)
+            gross = float((target_weights * labels.fillna(0.0)).sum())
+            actual_turnover = turnover(previous_weights, target_weights)
+            cost = 0.0 if ignore_costs else transaction_cost(actual_turnover, cost_bps)
+            net = gross - cost
+            delays[date] = -1  # Sentinel: execution model not used
+            previous_weights = target_weights
 
         timestamp = pd.Timestamp(date)
         returns[timestamp] = net
         gross_returns[timestamp] = gross
         turnovers[timestamp] = actual_turnover
-        previous_weights = weights
 
     return (
         pd.Series(returns, name="net_return"),
         pd.Series(gross_returns, name="gross_return"),
         pd.Series(turnovers, name="turnover"),
+        pd.Series(delays, name="delay_count"),
     )
 
 

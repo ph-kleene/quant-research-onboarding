@@ -1,15 +1,491 @@
 ---
-title: "术语表"
+title: "量化研究知识库与工具箱"
+description: "查找术语、理解概念、找到项目中可用的工具和资源。"
+toc: true
+toc-depth: 2
 ---
 
-| 术语 | 本项目定义 |
-|---|---|
-| IC / ICIR | 因子与后续收益秩相关 / IC 均值除以波动 |
-| 12-1 动量 | 过去约12个月、跳过最近约1个月的复合收益 |
-| 市值中性化 | 对数市值回归残差 |
-| usable_from | 由官方更新和保守规则推导的最早可用时点 |
-| 幸存者偏差 | 用后来仍存在证券替代当时完整样本 |
-| 确定性复现 | 相同冻结键重复执行，不是新研究决策 |
-| 价格指数 | 不含现金分红再投资 |
-| 总收益指数 | 含分红再投资，必须实际探测确认 |
-| REG | D 数据、T 时序、S 统计、C 成本、R 稳健性、P 复现 |
+::: {.kb-intro}
+三种用法：**快速查词**（搜索框）· **理解概念**（核心词条含直觉、公式、误区和检查方法）· **找到工具**（底部工具箱链接到项目中真实可用的资源）
+:::
+
+## 搜索与筛选
+
+<input type="text" id="kb-search" placeholder="输入关键词搜索...">
+
+<div class="kb-filters">
+<button class="kb-filter active" data-filter="all">全部</button>
+<button class="kb-filter" data-filter="cat-basics">研究基础</button>
+<button class="kb-filter" data-filter="cat-factors">因子构建</button>
+<button class="kb-filter" data-filter="cat-eval">因子评价</button>
+<button class="kb-filter" data-filter="cat-backtest">回测与交易</button>
+<button class="kb-filter" data-filter="cat-bias">偏差与验证</button>
+<button class="kb-filter" data-filter="cat-tools">工具箱</button>
+</div>
+
+<div id="kb-no-results" style="display:none;text-align:center;padding:2rem;color:#64748b;">
+没有匹配的结果。尝试更换关键词或清除筛选。
+</div>
+
+<script>
+(function(){
+  const s=document.getElementById('kb-search');
+  const fs=document.querySelectorAll('.kb-filter');
+  const nr=document.getElementById('kb-no-results');
+  let af='all';
+  function flt(){
+    const q=(s.value||'').toLowerCase();
+    const es=document.querySelectorAll('.kb-entry');
+    let v=0;
+    es.forEach(e=>{
+      const t=e.textContent.toLowerCase();
+      const c=(e.dataset.cats||'').split(' ');
+      const mf=af==='all'||c.includes(af);
+      const ms=!q||t.includes(q);
+      e.style.display=(mf&&ms)?'':'none';
+      if(mf&&ms) v++;
+    });
+    document.querySelectorAll('.kb-section').forEach(sec=>{
+      const ve=sec.querySelectorAll('.kb-entry:not([style*="display: none"])').length;
+      sec.style.display=ve===0?'none':'';
+    });
+    nr.style.display=v===0?'':'none';
+  }
+  s.addEventListener('input',flt);
+  fs.forEach(b=>{b.addEventListener('click',function(){
+    fs.forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    af=this.dataset.filter;
+    flt();
+  })});
+})();
+</script>
+
+<style>
+.kb-intro{background:#f0f4f8;padding:0.8rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-size:0.93rem;}
+#kb-search{width:100%;padding:0.55rem 0.9rem;border:1px solid #d9e2ec;border-radius:0.5rem;font-size:0.95rem;margin-bottom:0.6rem;}
+.kb-filters{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.5rem;}
+.kb-filters button{padding:0.3rem 0.75rem;border:1px solid #d9e2ec;border-radius:2rem;background:#f0f4f8;cursor:pointer;font-size:0.85rem;transition:all 0.15s;}
+.kb-filters button.active{background:#102a43;color:#fff;border-color:#102a43;}
+.kb-filters button:hover:not(.active){background:#e2e8f0;}
+.kb-section{margin-bottom:1.5rem;}
+.kb-section h2{font-size:1.2rem;border-bottom:2px solid #e2e8f0;padding-bottom:0.35rem;margin-bottom:0.75rem;}
+.kb-entry{border:1px solid #e2e8f0;border-radius:0.6rem;margin-bottom:0.5rem;overflow:hidden;}
+.kb-entry summary{padding:0.6rem 0.9rem;background:#f8fafc;cursor:pointer;font-weight:600;font-size:0.95rem;list-style:none;display:flex;align-items:center;gap:0.5rem;}
+.kb-entry summary::-webkit-details-marker{display:none;}
+.kb-entry summary::before{content:'\25B8';display:inline-block;transition:transform 0.2s;font-size:0.8rem;color:#64748b;min-width:1rem;}
+.kb-entry[open] summary::before{transform:rotate(90deg);}
+.kb-entry summary .badge{font-size:0.7rem;padding:0.15rem 0.45rem;border-radius:1rem;font-weight:700;margin-left:auto;}
+.badge-core{background:#fef3c7;color:#92400e;}
+.badge-advanced{background:#e0e7ff;color:#3730a3;}
+.kb-body{padding:0.7rem 0.9rem;font-size:0.9rem;line-height:1.6;}
+.kb-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0.7rem;margin-top:0.5rem;}
+.kb-tool-card{border:1px solid #e2e8f0;border-radius:0.6rem;padding:0.8rem;font-size:0.88rem;}
+.kb-tool-card h4{margin:0 0 0.3rem;font-size:0.95rem;}
+.kb-tool-card .btn-sm{padding:0.2rem 0.5rem;font-size:0.8rem;}
+#kb-back-top{position:fixed;bottom:1.5rem;right:1.5rem;width:2.5rem;height:2.5rem;border-radius:50%;background:#102a43;color:#fff;border:none;cursor:pointer;font-size:1.2rem;display:none;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+@media(max-width:640px){.kb-tools{grid-template-columns:1fr;}}
+</style>
+
+<div id="kb-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+<script>
+window.addEventListener('scroll',function(){document.getElementById('kb-back-top').style.display=window.scrollY>300?'':'none';});
+</script>
+
+---
+
+## 1. 研究基础 {.kb-section}
+
+<details class="kb-entry" data-cats="cat-basics core">
+<summary>研究问题 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**一句话**：一个可被数据检验的、有明确否定条件的投资假设。
+
+**直觉**：不是"怎样赚钱"，而是"在什么条件下，什么特征与未来收益相关"。好的研究问题必须能被数据**否定**。
+
+**示例**：❌ "怎样在沪深300里赚钱？" ✅ "在 2018—2025 年沪深300成分股中，低 PB 的股票是否比高 PB 的股票未来一个月收益更高？"
+
+**常见误解**：把"找到赚钱策略"当作研究目标。研究的目标是**判断证据是否可信**。
+
+**本项目**：[跟做研究](case-study.qmd) · 模板 `templates/question-card.md`
+
+**相关**：假设 · 因子 · 信号 · REG
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-basics cat-factors core">
+<summary>因子 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**一句话**：用来给股票排序的量化特征，可表达收益预测信号、风险暴露或系统性特征。
+
+**直觉**：从 300 个学生中选 10 个参加竞赛 → 先看"过去三次考试平均分"排序 → 这个"平均分"就是因子。量化选股同理。
+
+**不是**："因子就是选股指标"（太窄）；"因子好 = 策略赚钱"（还需要成本、成交、样本外）；"因子越多越好"（相关因子不增加信息）。
+
+**本项目**：价值（-PB）、12-1 动量、低波动。详见 [理解因子](factor-intro.qmd)。
+
+**相关**：信号 · IC · 分组收益 · 市值中性化
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-basics core">
+<summary>信号与标签 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**一句话**：**信号**是你在某时点形成的因子分数，用于决策。**标签**是信号之后发生的实际收益，用于评价。
+
+**为什么重要**：信号必须在标签之前——不能先看答案再决定复习什么。这是量化研究最核心的时序约束。
+
+**公式**：`信号形成时点 < 标签起始时点`。本项目：月末 18:00 信号 → 下一交易日开盘 → 持有期收益为标签。
+
+**检查**：`usable_from <= signal_at < execution_at`
+
+**本项目**：[跟做研究](case-study.qmd) 第 4 节
+
+**相关**：未来函数 · 研究时钟 · IC
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-basics">
+<summary>股票池 · 基准 · 截面与时间序列 <span class="badge badge-advanced">进阶</span></summary>
+<div class="kb-body">
+
+**股票池**：每个时点实际可交易的股票集合。必须用当时生效的名单，不能用当前成分回看历史（→ 幸存者偏差）。本项目使用 `index_weight` 按月查询。
+
+**基准**：用于对比组合表现的标准参照。**价格指数**（000300.SH）不含股息，**全收益指数**（H00300.CSI）含股息——两者收益差异约年化 2%。本项目先探测后使用，实际基准为 H00300.CSI。
+
+**截面**：同一时点多只股票的快照（如每月末所有股票的因子值）。**时间序列**：同一股票在多个时点的数据。因子研究大量使用截面操作，但评价是时间序列分析。
+
+**相关**：幸存者偏差 · 价格指数与全收益指数 · 分组收益
+
+</div>
+</details>
+
+---
+
+## 2. 因子构建 {.kb-section}
+
+<details class="kb-entry" data-cats="cat-factors core">
+<summary>价值因子 · 动量因子 · 低波动因子 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**价值**：取 PB 的相反数（`-PB`，PB > 0）。低 PB 可能代表低估，但也可能代表公司有问题。**方向**：PB 越低 → 分数越高。
+
+**12-1 动量**：过去约 252 个交易日累计收益，跳过最近约 21 个交易日。跳过最近一个月是为了避免短期反转效应。
+
+**低波动**：最近 60 个交易日年化波动率，取负值。波动越低 → 分数越高。低波动在牛市中可能跑输。
+
+**常见误解**："PB 就是低估值因子"（需取相反数）；"动量就是追涨"（关注中期趋势，非短期）；"低波动 = 低收益"（关注风险调整后收益）。
+
+**本项目**：`value_signal()` · `momentum_12_1()` · `low_volatility()` in `src/quant_onboarding/research.py`
+
+**相关**：因子合成 · IC · 市值中性化
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-factors">
+<summary>去极值 · 中性化 · 标准化 · 因子合成 <span class="badge badge-advanced">进阶</span></summary>
+<div class="kb-body">
+
+**三步预处理**：① Winsorize（1%/99% 分位数截尾）→ ② 对数市值回归取残差（消除市值影响）→ ③ Z-score（减均值除标准差，让因子可比）。
+
+**因子合成**：三因子等权平均 → `composite`。等权是最简单的合成方式，不是最优权重（本课程教学决策）。
+
+**常见误解**："去极值丢失信息"（极端值常来自数据错误）；"标准化 = 正态化"（只改变均值和方差，不改变分布形状）；"因子越多越好"（相关因子不增加信息）。
+
+**本项目**：`process_cross_section()` in `src/quant_onboarding/research.py`
+
+**相关**：截面 · 因子相关性 · IC
+
+</div>
+</details>
+
+---
+
+## 3. 因子评价与统计 {.kb-section}
+
+<details class="kb-entry" data-cats="cat-eval core">
+<summary>IC · ICIR · 分组收益 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**IC（信息系数）**：因子排名与未来收益排名的 Spearman 秩相关系数，范围 [-1, 1]。正 IC → 高分股票未来收益更高。本项目使用 Spearman（非 Pearson），因为因子与收益之间不一定是线性关系。
+
+**ICIR**：IC 均值 / IC 标准差（ddof=1）。衡量 IC 的稳定性。IC 均值 0.05、标准差 0.10 → ICIR = 0.5（较稳定）；IC 均值 0.05、标准差 0.50 → ICIR = 0.1（不稳定）。
+
+**分组收益**：按因子分数分 5 组，看高分组是否持续跑赢低分组。单调性 = 各组收益随分数递增。
+
+**阈值说明**：ICIR > 0.3、正 IC 比例 > 55% 等数值是本课程教学参考值，**不是行业通用标准**——受市场、频率、样本长度和策略类型影响。
+
+**本项目**：`information_coefficient()` · `ic_summary()` · `grouped_returns()` · 真实案例 IC 均值 0.043，ICIR 0.204
+
+**相关**：Spearman 与 Pearson · 统计显著 · 因子衰减
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-eval">
+<summary>统计显著 · 经济显著 · 可交易 · 过拟合 <span class="badge badge-advanced">进阶</span></summary>
+<div class="kb-body">
+
+**三个层次**：① **统计显著**（p < 0.05，不太可能是随机）→ ② **经济显著**（收益幅度足够大，有实际意义）→ ③ **可交易**（扣除成本、成交限制和流动性约束后收益仍存在）。三者经常被混淆。
+
+**多重检验**：试了 100 个因子，总有几个在历史数据上"显著"——这不代表它们真的有效。确认期（样本外）是第一道防线。
+
+**过拟合**：模型在历史数据上表现很好，在新数据上失效。症状：探索期 IC 很高，确认期 IC 大幅下降或变负。
+
+**本项目**：确认期 2023—2025 严格隔离，参数冻结后才能查看。
+
+**相关**：样本内与样本外 · 参数敏感性 · REG
+
+</div>
+</details>
+
+---
+
+## 4. 回测与交易 {.kb-section}
+
+<details class="kb-entry" data-cats="cat-backtest core">
+<summary>复权收益 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**公式**：`r_t = (price_t × adj_factor_t) / (price_{t-1} × adj_factor_{t-1}) - 1`
+
+**为什么不能直接用原始价格**：股票会分红、送股、拆股。分红日原始价格会"假跌"。
+
+**为什么不能用最终复权因子**：2025 年的最终复权因子包含 2018—2025 所有公司行动信息，用来修正 2018 年的价格 = 未来函数。
+
+**本项目**：`adjusted_returns()` in `src/quant_onboarding/research.py`
+
+**相关**：未来函数 · 价格指数与全收益指数
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-backtest core">
+<summary>换手率 · 交易成本 · 夏普比率 · 最大回撤 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**换手率**：`sum(|old - new|) / 2`（单边）。月换手 50%、单边成本 20bps → 月成本 0.1%，年化约 1.2%。
+
+**交易成本**：佣金 + 印花税（A 股卖出 0.1%）+ 滑点 + 涨跌停/停牌导致的无法成交。本项目单边 20bps 为教学假设。
+
+**夏普比率**：`年化收益 / 年化波动`。衡量每单位风险获得的收益。本项目使用绝对收益（未减无风险利率），`periods_per_year=12`。
+
+**最大回撤**：从净值最高点到之后最低点的最大跌幅。回撤幅度越低越好（-20% 优于 -40%）。
+
+**阈值说明**：夏普 > 0.5 是本课程教学参考值，不是行业标准。
+
+**本项目**：`turnover()` · `transaction_cost()` · `performance_summary()` in execution.py / research.py
+
+**相关**：成交模型 · 年化收益 · 年化波动
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-backtest">
+<summary>成交模型 · 价格指数与全收益指数 <span class="badge badge-advanced">进阶</span></summary>
+<div class="kb-body">
+
+**成交模型**：涨停不买 · 跌停不卖 · 停牌不成交 · 未成交保留旧仓并次日重试。卖出涨停或买入跌停不自动拒绝。**不能用收盘 `limit_status` 判断次日开盘**——应使用 `stk_limit`。
+
+**价格指数**（000300.SH）：只反映价格变化。**全收益指数**（H00300.CSI）：含分红再投资。两者年化差异约 2%。如果全收益不可用，降级为价格指数并明确标注。
+
+**本项目**：`decide_fill()` · `process_pending_orders()` in `src/quant_onboarding/execution.py`。实际基准 H00300.CSI。
+
+**相关**：换手率 · 基准 · 复权收益
+
+</div>
+</details>
+
+---
+
+## 5. 偏差、验证与可信度 {.kb-section}
+
+<details class="kb-entry" data-cats="cat-bias core">
+<summary>未来函数 · 幸存者偏差 <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**未来函数**：用"未来"信息做"过去"决策。典型：用 1 月收益评价 1 月初信号；用最终复权因子修正历史价格；用当前成分股回测历史。**检查**：`usable_from <= signal_at < execution_at`。
+
+**幸存者偏差**：用今天的"成功者"名单回看历史，遗漏已退出的"失败者"。典型：用 2025 年沪深 300 成分股回测 2018 年。**检查**：每个时点的股票池必须是当时实际生效的名单。
+
+**本项目**：回测陷阱 E1（未来数据）和 E2（幸存者偏差）。详见 [回测陷阱](failure-lab.qmd)。
+
+**相关**：信号与标签 · 股票池 · 样本内与样本外
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-bias core">
+<summary>样本内与样本外 · REG · credible_stop <span class="badge badge-core">核心</span></summary>
+<div class="kb-body">
+
+**样本内（探索期）**：2018—2022，用于发现模式和选择参数。**样本外（确认期）**：2023—2025，用于验证。两者必须严格隔离。查看确认期后修改参数 → 污染（contaminated），降级为探索性。
+
+**REG（研究评审门）**：六道门分两层。**第一层** D 数据 / T 时序 / P 复现 → 任一红灯 = 研究无效。**第二层** S 统计 / C 成本 / R 稳健性 → 红灯 = 可信停止（credible_stop）。
+
+**credible_stop**：研究有效（D/T/P 通过），但证据不足以支持策略推进（S/C/R 有红灯）。**这是成功的研究判断**——识别出不可信的漂亮结果，比假装问题不存在要好。
+
+**本项目真实案例**：D/T/P/S 绿，C 红（成交数据不完整），R 红（成分股滞后敏感性未通过）→ credible_stop。
+
+**相关**：确认期污染 · 参数敏感性 · [可信度六问](credibility.qmd)
+
+</div>
+</details>
+
+<details class="kb-entry" data-cats="cat-bias">
+<summary>确认期污染 · 参数敏感性 · 可复现性 <span class="badge badge-advanced">进阶</span></summary>
+<div class="kb-body">
+
+**确认期污染**：查看确认期后修改参数或评价规则，却仍宣称"样本外验证"。**不可逆**——删除日志不能恢复未污染状态。
+
+**参数敏感性**：参数小幅变化后结论是否稳定？**子期稳定性**：不同时间段结论是否一致？如果结论只在特定参数和时期成立，可能只是过拟合。
+
+**可复现性**：相同冻结键 → 相同结果。冻结键 = 代码哈希 + 依赖锁哈希 + 数据哈希 + 配置哈希。
+
+**本项目**：冻结键机制 · 确认治理计数器 · 研究护照。详见 [可信度六问](credibility.qmd)。
+
+**相关**：REG · 样本内与样本外 · 过拟合
+
+</div>
+</details>
+
+---
+
+## 6. 研究工具箱 {.kb-section}
+
+<div class="kb-tools">
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 🔍 因子构建工具
+
+**解决**：正确计算三个因子，完成去极值、中性化和标准化。
+
+**代码**：`src/quant_onboarding/research.py`
+
+[查看源码 →](../src/quant_onboarding/research.py){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### ⏱️ 数据时点检查
+
+**解决**：验证 `usable_from <= signal_at < execution_at`。
+
+**测试**：`tests/test_research.py`
+
+[查看测试 →](../tests/test_research.py){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### ⚠️ 回测陷阱实验
+
+**解决**：四个故意错误理解未来函数、幸存者偏差等。
+
+**页面**：[回测陷阱](failure-lab.qmd)
+
+[打开实验室 →](failure-lab.qmd){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 💰 成本与成交检查
+
+**解决**：计算换手率、成本，模拟保守成交。
+
+**代码**：`src/quant_onboarding/execution.py`
+
+[查看源码 →](../src/quant_onboarding/execution.py){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 📋 样本外与稳健性
+
+**解决**：隔离探索/确认期，检查子期稳定性。
+
+**代码**：`split_sample()` in research.py
+
+[查看源码 →](../src/quant_onboarding/research.py){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### ✅ 可信度六问
+
+**解决**：系统评估回测结论的可信度。
+
+**页面**：[可信度六问](credibility.qmd)
+
+[打开六问 →](credibility.qmd){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 📓 研究护照
+
+**解决**：记录完整元数据，确保可复现。
+
+**模板**：`templates/research-passport.md`
+
+[查看模板 →](../templates/research-passport.md){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 📔 Notebook 与模板
+
+**解决**：可执行案例和可复用研究模板。
+
+**页面**：[动手实践](practice.qmd)
+
+[开始实践 →](practice.qmd){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 📡 数据能力探测
+
+**解决**：确认九个 Tushare 端点的权限和覆盖。
+
+**报告**：`evidence/capability-probe.json`
+
+[查看报告 →](../evidence/capability-probe.json){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+<div class="kb-tool-card kb-entry" data-cats="cat-tools">
+
+#### 🧪 自动测试与复现
+
+**解决**：44 项测试覆盖全链路，确保代码变更安全。
+
+**命令**：`bash scripts/project.sh test`
+
+[动手实践 →](practice.qmd){.btn .btn-sm .btn-outline-secondary}
+
+</div>
+
+</div>
+
+---
+
+## 学习路径
+
+[理解因子](factor-intro.qmd) → [跟做研究](case-study.qmd) → [回测陷阱](failure-lab.qmd) → [可信度六问](credibility.qmd) → [动手实践](practice.qmd) → [20 步地图](research-map.qmd)

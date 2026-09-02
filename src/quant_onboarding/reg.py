@@ -199,10 +199,11 @@ class ConfirmationLedger:
             return True
         for line in self.path.read_text(encoding="utf-8").splitlines():
             event = json.loads(line)
-            claimed = event.pop("event_hash")
+            claimed = event.get("event_hash")
             if event.get("previous_hash") != previous:
                 return False
-            canonical = json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            payload = {k: v for k, v in event.items() if k != "event_hash"}
+            canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             actual = hashlib.sha256(canonical.encode()).hexdigest()
             if actual != claimed:
                 return False
