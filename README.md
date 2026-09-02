@@ -52,16 +52,106 @@ Token 保存在仓库外文件（权限 600）：
 
 ## 目录
 
-```text
-content/        学习站页面（Quarto qmd）
-notebooks/      可执行研究 Notebook
-src/            研究逻辑、数据管线、执行模型、REG
-tests/          44 项单元/契约/回归测试
-fixtures/       确定性教学数据
-templates/      问题卡、假设卡、结果卡、护照等模板
-evidence/       脱敏探测报告、REG 摘要、教学图表
-docs/           需求与设计文档（冻结）
-scripts/        统一命令入口与验证脚本
+```
+.
+├── README.md                          # 项目说明
+├── REQUIREMENTS.md                    # 原始需求（未修改）
+├── AI_PROMPTS.md                      # AI 提问记录（17 条）
+├── _quarto.yml                        # Quarto 站点配置
+├── pyproject.toml                     # Python 项目与依赖
+├── uv.lock                            # 锁定依赖版本
+├── references.bib                     # 参考文献
+├── .env.example                       # 环境变量模板（不含值）
+├── .gitignore                         # 秘密、缓存、产物排除
+│
+├── content/                           # 学习站页面
+│   ├── index.qmd                      #   首页
+│   ├── factor-intro.qmd               #   第 1 步：理解因子
+│   ├── case-study.qmd                 #   第 2 步：跟做研究
+│   ├── failure-lab.qmd                #   第 3 步：回测陷阱
+│   ├── credibility.qmd                #   第 4 步：可信度六问
+│   ├── practice.qmd                   #   第 5 步：动手实践
+│   ├── research-map.qmd               #   20 步研究地图
+│   ├── glossary.qmd                   #   知识库与工具箱
+│   ├── self-test.qmd                  #   八步自测
+│   ├── references.qmd                 #   引用与事实核验
+│   ├── english-summary.qmd            #   英文摘要
+│   ├── quickstart.qmd                 #   （旧版，保留）
+│   ├── three-hours.qmd                #   （旧版，保留）
+│   ├── deep-dive.qmd                  #   （旧版，保留）
+│   ├── reg.qmd                        #   （旧版，保留）
+│   ├── passport.qmd                   #   （旧版，保留）
+│   └── templates.qmd                  #   （旧版，保留）
+│
+├── notebooks/
+│   └── research-case.ipynb            # 可执行研究 Notebook（含输出）
+│
+├── src/quant_onboarding/
+│   ├── __init__.py                    # 包声明
+│   ├── research.py                    # 因子、IC、分组、绩效、失败实验
+│   ├── execution.py                   # 成交状态机、换手、成本
+│   ├── reg.py                         # REG 六门、研究护照、确认账本
+│   ├── data.py                        # Token、限速、缓存、清单
+│   ├── probe.py                       # 九端点能力探测
+│   ├── real_case.py                   # 真实数据管线
+│   ├── teaching.py                    # 确定性教学夹具
+│   └── cli.py                         # 命令行入口
+│
+├── tests/
+│   ├── test_research.py               # 因子、IC、分组、时序
+│   ├── test_execution.py              # 成交状态机、换手、成本
+│   ├── test_reg.py                    # REG、护照、账本
+│   ├── test_data.py                   # Token、限速、缓存、清单
+│   ├── test_probe.py                  # 探测与基准发现
+│   ├── test_real_case.py              # 冻结键、时钟、E2/E4
+│   └── test_teaching.py               # 教学夹具与失败实验
+│
+├── templates/                         # 可复用研究模板
+│   ├── question-card.md               #   问题卡
+│   ├── hypothesis-card.md             #   假设卡
+│   ├── experiment-registration.md     #   实验登记
+│   ├── result-card.md                 #   结果卡
+│   ├── reg-review.md                  #   REG 评审
+│   ├── failure-diagnosis.md           #   失败诊断
+│   ├── research-passport.md           #   研究护照
+│   └── data-dictionary.md             #   数据字典
+│
+├── scripts/
+│   ├── project.sh                     # 统一命令入口
+│   ├── generate_public_evidence.py    # 生成教学证据与图表
+│   ├── execute_notebook.py            # Notebook E2E 验证
+│   ├── check_links.py                 # 内部链接检查
+│   └── audit_repository.py            # 安全与许可审计
+│
+├── evidence/                          # 脱敏证据（不可逆聚合）
+│   ├── capability-probe.json          #   九端点探测报告
+│   ├── real-case-summary.json         #   真实案例 REG 摘要
+│   ├── real-case-summary.md           #   真实案例可读摘要
+│   ├── public-case-summary.json       #   教学夹具摘要
+│   ├── public-case-summary.md         #   教学夹具可读摘要
+│   ├── public-reg-summary.md          #   教学夹具 REG
+│   └── teaching-case.svg              #   正确 vs 失败实验图表
+│
+├── fixtures/                          # 确定性教学数据
+│   ├── README.md
+│   └── teaching_panel.csv
+│
+├── docs/                              # 需求与设计文档
+│   ├── 00-executive-summary.md
+│   ├── 01-product-requirements.md
+│   ├── 02-solution-options-and-decision.md
+│   ├── 03-learning-and-content-design.md
+│   ├── 04-technical-design.md
+│   ├── 05-implementation-and-validation-plan.md
+│   └── 06-requirements-traceability.md
+│
+├── assets/
+│   ├── styles.css                     # 站点样式
+│   └── site-preview.svg               # 预览图
+│
+└── .github/workflows/
+    ├── ci.yml                         # CI：测试 + 构建 + 审计
+    └── pages.yml                      # GitHub Pages 部署
 ```
 
 ## 交付物
