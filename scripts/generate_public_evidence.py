@@ -61,7 +61,8 @@ def main() -> None:
         )
     axis.set_title("教学夹具：正确管线与四个受控失败实验（非市场结果）")
     axis.set_xlabel("教学日期（月度）")
-    axis.set_ylabel("累计值（起点=1）")
+    axis.set_ylabel("累计值（对数尺度，起点=1）")
+    axis.set_yscale("log")
     axis.legend(ncol=2, frameon=False)
     axis.text(
         0.01,

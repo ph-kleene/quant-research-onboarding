@@ -102,11 +102,18 @@ def evaluate_teaching_case() -> dict:
     future = scored.copy()
     future["future_score"] = future["forward_return"]
     leaked, _, _ = _monthly_strategy(future, "future_score", cost_bps=20)
+    # E2: survivorship bias — rank stocks by their full-sample mean forward return,
+    # keep only the top 50% (the "winners" that a backtest would see if it used
+    # today's database to identify historically traded stocks).
     means = scored.groupby("symbol")["forward_return"].mean().sort_values(ascending=False)
-    survivors = set(means.iloc[: int(len(means) * 0.75)].index)
-    survivor, _, _ = _monthly_strategy(scored, "composite", cost_bps=20, survivor_symbols=survivors)
+    survivor_symbols = set(means.iloc[: int(len(means) * 0.5)].index)
+    survivor, _, _ = _monthly_strategy(scored, "composite", cost_bps=20, survivor_symbols=survivor_symbols)
+    # E4: confirmation reselection — try individual factors only (not composite),
+    # pick the one with the highest full-sample return.  This mimics the behaviour
+    # of a researcher who tries many specifications and reports the best one,
+    # contaminating the confirmation period.
     candidates = {}
-    for factor in ("value_z", "momentum_z", "low_volatility_z", "composite"):
+    for factor in ("value_z", "momentum_z", "low_volatility_z"):
         candidate, _, _ = _monthly_strategy(scored, factor, cost_bps=20)
         candidates[factor] = candidate
     chosen_name = max(
