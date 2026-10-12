@@ -7,6 +7,21 @@
 
 **在线学习站：<https://ph-kleene.github.io/quant-research-onboarding/>**
 
+## 项目内容
+
+本仓库把中文学习资料、研究代码、可执行 Notebook 与证据记录放在同一套工作流中。案例围绕沪深 300 成分股的**价值、动量、低波动**三因子展开，包含因子构建、研究评价、成交约束与结论审查。
+
+| 模块 | 已有实现 | 源码入口 |
+|---|---|---|
+| 因子与研究评价 | 去极值、市值中性化、标准化、Rank IC、分组收益、绩效统计与时序校验 | [research.py](src/quant_onboarding/research.py) |
+| 成交与成本 | 停牌、涨跌停与无有效成交的处理，延期订单、换手和成本计算 | [execution.py](src/quant_onboarding/execution.py) |
+| 结论审查 | 数据、时序、统计、成本、稳健性、复现六项审查，研究护照与确认集记录 | [reg.py](src/quant_onboarding/reg.py) |
+| 数据管线 | Tushare 端点探测、缓存、真实案例数据处理 | [probe.py](src/quant_onboarding/probe.py) · [data.py](src/quant_onboarding/data.py) · [real_case.py](src/quant_onboarding/real_case.py) |
+
+技术栈：Python 3.12、pandas、NumPy、SciPy、Jupyter、Tushare、uv、Quarto。依赖版本见 [pyproject.toml](pyproject.toml) 和 [uv.lock](uv.lock)。
+
+资料入口：[研究 Notebook](notebooks/research-case.ipynb) · [研究模板](templates/) · [教学案例图表](evidence/teaching-case.svg) · [需求与设计文档](docs/) · [英文摘要](content/english-summary.qmd)。
+
 ## 学习路径
 
 | 时间 | 入口 | 收获 |
@@ -18,6 +33,8 @@
 **课程页面**：首页 → 学习路径（理解因子 → 跟做研究 → 回测陷阱 → 可信度六问）→ 动手实践 → 参考（知识库 · Notebook · 20 步地图 · 自测）
 
 ## 本地启动
+
+从仓库根目录运行以下命令。需要先安装 **Bash、uv 和 Quarto**；`setup` 使用 uv 安装 Python 3.12 和项目依赖，不会安装 uv 或 Quarto。真实数据的 Token 文件检查使用 GNU `stat -c`，对应脚本见 [project.sh](scripts/project.sh)。
 
 ```bash
 bash scripts/project.sh setup   # 安装环境（仅第一次）
@@ -36,6 +53,10 @@ bash scripts/project.sh preview # 本地预览
 | `fetch` | 需要 Token | 获取真实数据（缓存写仓库外） |
 | `audit` | 不需要 | 安全与许可扫描 |
 
+表中的离线命令以环境和依赖已安装为前提。仓库内的[确定性教学数据](fixtures/README.md)可用于无 Token 的教学演示、测试与失败实验；它由固定种子生成，不是市场数据，也不能作为投资证据。
+
+现有 [CI 配置](.github/workflows/ci.yml)依次运行静态检查、pytest、Notebook 执行、站点构建、链接检查与安全/许可审计；执行状态可从上方 CI 链接查看。测试源码见 [tests/](tests/)。
+
 ## 真实数据（可选）
 
 Token 保存在仓库外文件（权限 600）：
@@ -44,11 +65,23 @@ Token 保存在仓库外文件（权限 600）：
 ~/.config/shangchen-quant-research-onboarding/tushare.env
 ```
 
-文件内容为 `TUSHARE_TOKEN=你的Token`，然后运行 `probe` 和 `fetch`。原始缓存位于 `~/.cache/shangchen-quant-research-onboarding/`，不会进入仓库。
+文件内容为 `TUSHARE_TOKEN=你的Token`。按脚本要求将该文件权限设为 `600`，然后从仓库根目录运行：
+
+```bash
+chmod 600 ~/.config/shangchen-quant-research-onboarding/tushare.env
+bash scripts/project.sh probe
+bash scripts/project.sh fetch
+```
+
+也可以通过环境变量 `TUSHARE_TOKEN` 提供 Token。调用真实数据接口需要相应的 Tushare 访问权限。原始缓存位于 `~/.cache/shangchen-quant-research-onboarding/`，不会进入仓库。
 
 ## 真实案例结论
 
-九端点探测成功。基准为 `H00300.CSI`（全收益，含股息），价格代码 `000300.SH`。2018—2025 共 96 个有效月度截面。成交数据不完整，成分股滞后一月敏感性未通过 → **credible_stop**（证据不足，停止推进）。详见[跟做研究](https://ph-kleene.github.io/quant-research-onboarding/content/case-study.html)。
+仓库保存的[端点探测报告](evidence/capability-probe.json)记录九端点探测成功；[真实案例摘要](evidence/real-case-summary.md)记录 2018—2025 年研究样本中的 96 个有效月度截面。基准为 `H00300.CSI`（全收益，含股息），价格代码 `000300.SH`。
+
+现有证据的研究状态为 **credible_stop**（证据不足，停止推进）：正式成交数据不完整，成分股滞后一月敏感性未通过。摘要中的组合收益属于信号诊断，不能视为已通过成交约束验证的策略业绩。
+
+结果入口：[真实案例摘要](evidence/real-case-summary.md) · [机器可读证据](evidence/real-case-summary.json) · [教学夹具摘要](evidence/public-case-summary.md) · [跟做研究](https://ph-kleene.github.io/quant-research-onboarding/content/case-study.html)。教学结果与真实市场结果分别保存。
 
 ## 目录
 
@@ -84,7 +117,7 @@ Token 保存在仓库外文件（权限 600）：
 │   └── templates.qmd                  #   （旧版，保留）
 │
 ├── notebooks/
-│   └── research-case.ipynb            # 可执行研究 Notebook（含输出）
+│   └── research-case.ipynb            # 可执行研究 Notebook
 │
 ├── src/quant_onboarding/
 │   ├── __init__.py                    # 包声明
